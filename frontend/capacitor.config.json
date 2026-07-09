@@ -1,0 +1,15 @@
+{
+  "appId": "com.fadi.kidsbarbershop",
+  "appName": "Kids Salon",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#FFF8F0",
+      "showSpinner": false
+    }
+  }
+}

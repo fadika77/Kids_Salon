@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261496523256",
+    "project_id": "kidssalon-2bd06",
+    "storage_bucket": "kidssalon-2bd06.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261496523256:android:6eb74f9f3bfad3b503ee0d",
+        "android_client_info": {
+          "package_name": "com.fadi.kidsbarbershop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8lGfhyTssjkDLWANknc_ZiUc1doM_4_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
