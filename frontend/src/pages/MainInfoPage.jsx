@@ -15,9 +15,9 @@ const SHOP = {
   phoneLink: '+972503796880',      // international format used for the actual call
   email: 'kidssalon060@gmail.com',
   hours: {
-    en: 'Mon–Sat: 9:00 AM – 6:00 PM',
-    he: 'ב׳–ש׳: 9:00 – 18:00',
-    ar: 'الاثنين–السبت: 9:00 – 18:00',
+    en: 'Sun–Sat: 10:00 AM – 8:00 PM',
+    he: 'א׳–ש׳: 10:00 – 20:00',
+    ar: 'الأحد–السبت: 10:00 – 20:00',
   },
   // TODO: put your real prices here
   services: [

@@ -1,7 +1,12 @@
 from sqlalchemy import (
-    Column, Integer, String, DateTime, Date, Time,
-    ForeignKey, Enum as SAEnum, Boolean, Text
+    Column, Integer, DateTime, Date, Time,
+    ForeignKey, Enum as SAEnum, Boolean,
+    Unicode, UnicodeText,
 )
+
+# NOTE: we use Unicode/UnicodeText (-> NVARCHAR on SQL Server) instead of
+# String/Text (-> VARCHAR) so Hebrew and Arabic text is stored correctly.
+# VARCHAR columns silently turn non-Latin characters into '?'.
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -36,18 +41,18 @@ class User(Base):
     __tablename__ = "users"
 
     id            = Column(Integer, primary_key=True, index=True)
-    full_name     = Column(String(255), nullable=False)
-    email         = Column(String(255), unique=True, index=True, nullable=True)
-    phone         = Column(String(50), nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    full_name     = Column(Unicode(255), nullable=False)
+    email         = Column(Unicode(255), unique=True, index=True, nullable=True)
+    phone         = Column(Unicode(50), nullable=False)
+    password_hash = Column(Unicode(255), nullable=False)
     role          = Column(SAEnum(UserRole), default=UserRole.customer, nullable=False)
     created_at    = Column(DateTime, server_default=func.now())
     updated_at    = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    fcm_token     = Column(String(512), nullable=True)   # Firebase push notification token
+    fcm_token     = Column(Unicode(512), nullable=True)   # Firebase push notification token
 
     # Password reset (admin "forgot password" flow)
-    reset_code         = Column(String(10), nullable=True)
+    reset_code         = Column(Unicode(10), nullable=True)
     reset_code_expires = Column(DateTime, nullable=True)
 
     bookings           = relationship("Booking", back_populates="customer")
@@ -63,7 +68,7 @@ class Child(Base):
 
     id         = Column(Integer, primary_key=True, index=True)
     parent_id  = Column(Integer, ForeignKey("users.id"), nullable=False)
-    name       = Column(String(100), nullable=False)
+    name       = Column(Unicode(100), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     parent = relationship("User", back_populates="children")
@@ -79,7 +84,7 @@ class AppointmentSlot(Base):
     date                = Column(Date, nullable=False)
     time                = Column(Time, nullable=False)
     duration_minutes    = Column(Integer, default=30)
-    notes               = Column(Text, nullable=True)
+    notes               = Column(UnicodeText, nullable=True)
     status              = Column(SAEnum(SlotStatus), default=SlotStatus.available, nullable=False)
     created_by_admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at          = Column(DateTime, server_default=func.now())
@@ -134,7 +139,7 @@ class GalleryImage(Base):
     __tablename__ = "gallery_images"
 
     id          = Column(Integer, primary_key=True, index=True)
-    filename    = Column(String(255), nullable=False)
+    filename    = Column(Unicode(255), nullable=False)
     uploaded_at = Column(DateTime, server_default=func.now())
 
 
@@ -145,7 +150,7 @@ class AppSettings(Base):
     __tablename__ = "app_settings"
 
     id          = Column(Integer, primary_key=True, index=True)
-    shop_name   = Column(String(255), default="Kids Barbershop")
-    admin_email = Column(String(255), nullable=False)
-    phone       = Column(String(50), nullable=True)
+    shop_name   = Column(Unicode(255), default="Kids Barbershop")
+    admin_email = Column(Unicode(255), nullable=False)
+    phone       = Column(Unicode(50), nullable=True)
     updated_at  = Column(DateTime, server_default=func.now(), onupdate=func.now())
