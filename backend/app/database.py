@@ -25,6 +25,12 @@ engine = create_engine(
     DATABASE_URL,
     fast_executemany=True,
     echo=False,
+    # Azure SQL closes idle connections — without these two settings the app
+    # hands out dead connections after quiet periods, causing 500 errors on
+    # the first request. pre_ping tests each connection before use;
+    # recycle replaces connections older than 25 minutes.
+    pool_pre_ping=True,
+    pool_recycle=1500,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

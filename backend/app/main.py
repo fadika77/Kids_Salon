@@ -112,10 +112,11 @@ def on_shutdown():
 # ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
-@app.get("/")
+# HEAD is included so uptime monitors (UptimeRobot etc.) get a 200 instead of 405
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok", "message": "Kids Barbershop API is running"}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "healthy"}
