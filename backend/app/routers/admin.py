@@ -16,7 +16,7 @@ from ..schemas import (
     SlotCreate, SlotUpdate, SlotOut, SlotWithBooking,
     BookingOut, AppSettingsOut, AppSettingsUpdate, DashboardStats,
     BulkSlotsCreate, BulkSlotsResult, NoShowUpdate, CustomerStats,
-    GalleryImageOut, AdminStats, StatsBucket
+    GalleryImageOut, AdminStats, StatsBucket, AdminWaitlistEntry
 )
 from ..auth import get_current_admin
 from ..models import User
@@ -202,7 +202,7 @@ def delete_slot(
 
             customer    = booking.customer
             settings    = db.query(AppSettings).first()
-            shop_name   = settings.shop_name   if settings else "Kids Salon"
+            shop_name   = settings.shop_name   if settings else "Kids Barbershop"
             admin_email = settings.admin_email if settings else ""
             admin_fcm   = _get_admin_fcm_token(db, admin_email)
             background_tasks.add_task(
@@ -290,7 +290,7 @@ def admin_cancel_booking(
     customer      = booking.customer
     settings      = db.query(AppSettings).first()
     admin_email   = settings.admin_email if settings else ""
-    shop_name     = settings.shop_name   if settings else "Kids Salon"
+    shop_name     = settings.shop_name   if settings else "Kids Barbershop"
     admin_fcm     = _get_admin_fcm_token(db, admin_email)
     appt_date_str = str(booking.slot.date)  if booking.slot else ""
     appt_time_str = str(booking.slot.time)[:5] if booking.slot else ""
@@ -448,6 +448,55 @@ def customer_stats(
         )
         for r in rows
     ]
+
+
+# ---------------------------------------------------------------------------
+# GET /admin/waitlist  – customers waiting for a slot to open, with details
+# ---------------------------------------------------------------------------
+@router.get("/waitlist", response_model=List[AdminWaitlistEntry])
+def admin_waitlist(
+    date_filter: Optional[date] = Query(None, alias="date"),
+    admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """List waitlist entries (today and future only). Optional ?date= filter."""
+    q = (
+        db.query(WaitlistEntry, User)
+        .join(User, User.id == WaitlistEntry.user_id)
+        .filter(WaitlistEntry.date >= date.today())
+    )
+    if date_filter:
+        q = q.filter(WaitlistEntry.date == date_filter)
+
+    rows = q.order_by(WaitlistEntry.date, WaitlistEntry.created_at).all()
+    return [
+        AdminWaitlistEntry(
+            id=w.id,
+            date=w.date,
+            created_at=w.created_at,
+            customer_id=u.id,
+            customer_name=u.full_name,
+            customer_phone=u.phone,
+            customer_email=u.email,
+        )
+        for (w, u) in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# DELETE /admin/waitlist/{entry_id}  – manually remove someone from the list
+# ---------------------------------------------------------------------------
+@router.delete("/waitlist/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
+def admin_waitlist_remove(
+    entry_id: int,
+    admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    entry = db.query(WaitlistEntry).filter(WaitlistEntry.id == entry_id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Waitlist entry not found")
+    db.delete(entry)
+    db.commit()
 
 
 # ---------------------------------------------------------------------------

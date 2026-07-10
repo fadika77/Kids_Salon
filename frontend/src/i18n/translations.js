@@ -14,7 +14,7 @@ export const translations = {
   /* ════════════════════════════ ENGLISH ════════════════════════════ */
   en: {
     // Common
-    appName: 'Kids Salon',
+    appName: 'Kids Barbershop',
     loading: 'Loading…',
     cancel: 'Cancel',
     back: 'Back',
@@ -67,7 +67,7 @@ export const translations = {
     loginHere: 'login here',
 
     // First run modal
-    welcomeTitle: 'Welcome to Kids Salon!',
+    welcomeTitle: 'Welcome to Kids Barbershop!',
     welcomeSub: 'Tell us a bit about yourself so we can get you booked in. 🎉',
     fullName: 'Full Name',
     emailAddress: 'Email Address',
@@ -270,6 +270,9 @@ export const translations = {
     waitlistBtn: '🔔 Notify me if a time opens',
     waitlistJoining: 'Adding you…',
     waitlistJoined: "You're on the waiting list! We'll notify you if a time opens on this day.",
+    waitlistAdminTitle: 'Waiting List',
+    waitlistRemoveBtn: 'Remove',
+    waitlistRemoveConfirm: 'Remove this customer from the waiting list?',
 
     // Kids profiles
     myKids: '👶 My Kids',
@@ -555,6 +558,9 @@ export const translations = {
     waitlistBtn: '🔔 עדכנו אותי אם יתפנה תור',
     waitlistJoining: 'מוסיף…',
     waitlistJoined: 'נכנסתם לרשימת ההמתנה! נעדכן אתכם אם יתפנה תור ביום זה.',
+    waitlistAdminTitle: 'רשימת המתנה',
+    waitlistRemoveBtn: 'הסרה',
+    waitlistRemoveConfirm: 'להסיר את הלקוח מרשימת ההמתנה?',
 
     // Kids profiles
     myKids: '👶 הילדים שלי',
@@ -840,6 +846,9 @@ export const translations = {
     waitlistBtn: '🔔 أخبروني إذا توفر موعد',
     waitlistJoining: 'جارٍ الإضافة…',
     waitlistJoined: 'أنتم على قائمة الانتظار! سنخبركم إذا توفر موعد في هذا اليوم.',
+    waitlistAdminTitle: 'قائمة الانتظار',
+    waitlistRemoveBtn: 'إزالة',
+    waitlistRemoveConfirm: 'إزالة هذا العميل من قائمة الانتظار؟',
 
     // Kids profiles
     myKids: '👶 أطفالي',

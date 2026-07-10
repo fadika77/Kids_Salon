@@ -51,6 +51,13 @@ export const adminApi = {
   getCustomerStats: () =>
     api.get('/admin/customer-stats'),
 
+  // Waiting list (customers waiting for a slot to open)
+  getWaitlist: (date) =>
+    api.get(date ? `/admin/waitlist?date=${date}` : '/admin/waitlist'),
+
+  removeWaitlistEntry: (entryId) =>
+    api.delete(`/admin/waitlist/${entryId}`),
+
   // Statistics page
   getStats: () =>
     api.get('/admin/stats'),

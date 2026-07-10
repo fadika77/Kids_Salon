@@ -295,6 +295,17 @@ class WaitlistOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class AdminWaitlistEntry(BaseModel):
+    """Waitlist entry with customer details — for the admin waitlist view."""
+    id: int
+    date: date
+    created_at: Optional[datetime] = None
+    customer_id: int
+    customer_name: str
+    customer_phone: str
+    customer_email: Optional[str] = None
+
+
 # ---------------------------------------------------------------------------
 # Gallery
 # ---------------------------------------------------------------------------

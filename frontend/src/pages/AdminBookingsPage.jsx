@@ -13,6 +13,8 @@ export default function AdminBookingsPage() {
   const { t, locale } = useLang();
   const [bookings, setBookings]   = useState([]);
   const [custStats, setCustStats] = useState({});   // customer_id -> {total_visits, no_shows, last_visit}
+  const [waitlist, setWaitlist]   = useState([]);   // customers waiting for a slot to open
+  const [showWaitlist, setShowWaitlist] = useState(false);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState('');
   const [msg, setMsg]             = useState('');
@@ -43,6 +45,25 @@ export default function AdminBookingsPage() {
       .catch(() => {});
   }, []);
 
+  // Waiting list — reloads when the date filter changes and after a cancel
+  const loadWaitlist = useCallback(() => {
+    adminApi.getWaitlist(filters.date || undefined)
+      .then(setWaitlist)
+      .catch(() => {});
+  }, [filters.date]);
+
+  useEffect(() => { loadWaitlist(); }, [loadWaitlist]);
+
+  const handleWaitlistRemove = async (entryId) => {
+    if (!window.confirm(t('waitlistRemoveConfirm'))) return;
+    try {
+      await adminApi.removeWaitlistEntry(entryId);
+      setWaitlist((prev) => prev.filter((w) => w.id !== entryId));
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   const handleNoShow = async (b) => {
     const marking = !b.no_show;
     if (marking && !window.confirm(t('noShowConfirm'))) return;
@@ -64,6 +85,9 @@ export default function AdminBookingsPage() {
       await adminApi.cancelBooking(bookingId);
       setMsg(t('bookingCancelledMsg'));
       load();
+      // Cancelling frees a slot → backend notifies & clears that date's
+      // waitlist, so refresh our copy too.
+      loadWaitlist();
     } catch (e) {
       setError(e.message);
     } finally {
@@ -112,6 +136,55 @@ export default function AdminBookingsPage() {
 
       {msg   && <Message type="success" onClose={() => setMsg('')}>{msg}</Message>}
       {error && <Message type="error"   onClose={() => setError('')}>{error}</Message>}
+
+      {/* ── Waiting list ──────────────────────────────────────────────── */}
+      {waitlist.length > 0 && (
+        <div className="card" style={{ marginBottom: 16, borderInlineStart: '4px solid var(--color-orange)' }}>
+          <button
+            onClick={() => setShowWaitlist((s) => !s)}
+            style={{
+              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: 0, font: 'inherit',
+            }}
+          >
+            <span style={{ fontSize: 15, fontWeight: 800 }}>
+              ⏰ {t('waitlistAdminTitle')}{' '}
+              <span className="badge badge--booked" style={{ marginInlineStart: 6 }}>
+                {waitlist.length}
+              </span>
+            </span>
+            <span style={{ fontSize: 18 }}>{showWaitlist ? '▴' : '▾'}</span>
+          </button>
+
+          {showWaitlist && (
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {waitlist.map((w) => (
+                <div key={w.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: 'var(--color-gray-100)', borderRadius: 'var(--radius-md)',
+                  padding: '8px 12px', fontSize: 13,
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>👤 {w.customer_name}</div>
+                    <div style={{ color: 'var(--color-text-muted)' }}>
+                      🗓️ {new Date(w.date + 'T00:00:00').toLocaleDateString(locale, {
+                        weekday: 'short', month: 'short', day: 'numeric',
+                      })} · 📞 <span className="ltr-inline">{w.customer_phone}</span>
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn--outline btn--sm"
+                    onClick={() => handleWaitlistRemove(w.id)}
+                  >
+                    ✕ {t('waitlistRemoveBtn')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? <Loading /> : bookings.length === 0 ? (
         <div className="empty-state">
