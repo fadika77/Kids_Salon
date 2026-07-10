@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { authApi, saveAuth } from '../api/auth';
+import { authApi, saveAuth, getCustomerProfile } from '../api/auth';
 import { Message } from './Message';
 import { useLang } from '../i18n/LanguageContext';
 
@@ -11,7 +11,17 @@ import { useLang } from '../i18n/LanguageContext';
  */
 export default function FirstRunModal({ onComplete }) {
   const { t } = useLang();
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '' });
+  // If this device already saved a profile (e.g. the silent session restore
+  // failed because of a network hiccup), pre-fill the fields so the user
+  // never has to re-type their details.
+  const [form, setForm] = useState(() => {
+    const saved = getCustomerProfile();
+    return {
+      full_name: saved?.full_name || '',
+      email:     saved?.email     || '',
+      phone:     saved?.phone     || '',
+    };
+  });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 

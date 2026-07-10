@@ -25,6 +25,13 @@ export default function MyAppointmentsPage() {
   const [canceling, setCanceling]   = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [tab, setTab]               = useState('upcoming');
+  // Ticks every minute so countdown badges ("in 3 hours") stay live.
+  const [, setNowTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const load = () => {
     setLoading(true);

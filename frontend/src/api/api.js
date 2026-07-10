@@ -9,8 +9,21 @@
 // so the same code/build works correctly either way without manual edits.
 import { Capacitor } from '@capacitor/core';
 
+// The live production backend (Render).
+const PROD_URL = 'https://kids-salon-api.onrender.com';
+
 // Used when running in a normal browser (npm run dev / npm run preview).
-const WEB_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Safety net: if the build forgot VITE_API_URL but the site is being served
+// from a real domain (not localhost), we're clearly in production — use the
+// live backend instead of localhost so the deployed site never silently
+// points at the developer machine.
+const isLocalHost =
+  typeof window !== 'undefined' &&
+  ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+const WEB_URL =
+  import.meta.env.VITE_API_URL ||
+  (isLocalHost ? 'http://localhost:8000' : PROD_URL);
 
 // Used when running inside the native Android/iOS app via Capacitor.
 //   - Android emulator: 10.0.2.2 is the special alias for your PC's localhost.
@@ -26,6 +39,23 @@ export { BASE_URL };
 
 function getToken() {
   return localStorage.getItem('token');
+}
+
+// Friendly, localized message for network-level failures (server unreachable,
+// no internet, CORS/misconfigured URL). Raw fetch errors like "Failed to
+// fetch" are meaningless to users, so we replace them.
+const NETWORK_ERROR_MESSAGES = {
+  en: "Can't reach the server. Please check your internet connection and try again.",
+  he: 'לא ניתן להתחבר לשרת. בדקו את חיבור האינטרנט ונסו שוב.',
+  ar: 'تعذّر الاتصال بالخادم. تحقّقوا من اتصال الإنترنت وحاولوا مرة أخرى.',
+};
+
+function networkError() {
+  let lang = 'en';
+  try { lang = localStorage.getItem('app_language') || 'en'; } catch { /* ignore */ }
+  const err = new Error(NETWORK_ERROR_MESSAGES[lang] || NETWORK_ERROR_MESSAGES.en);
+  err.isNetworkError = true;
+  return err;
 }
 
 /**
@@ -97,10 +127,16 @@ async function request(path, options = {}, isRetry = false) {
     ...(options.headers || {}),
   };
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    // fetch itself failed — server down, no internet, or wrong API URL.
+    throw networkError();
+  }
 
   // Token rejected → try silent device re-registration once, then retry.
   if (response.status === 401 && !isRetry && !path.startsWith('/auth/device-register') && !path.startsWith('/auth/login')) {
@@ -115,26 +151,58 @@ async function request(path, options = {}, isRetry = false) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message =
-      data?.detail ||
-      (Array.isArray(data?.detail) ? data.detail.map((e) => e.msg).join(', ') : null) ||
-      'Something went wrong';
-    throw new Error(message);
+    throw new Error(errorMessageFrom(data));
   }
 
   return data;
 }
 
+// Turn any FastAPI error body into a human-readable string.
+//   - 4xx/5xx with {"detail": "some text"}            -> "some text"
+//   - 422 validation with {"detail": [{msg, loc}...]} -> "field: message, ..."
+// The array case MUST be checked first: an array is truthy, so `detail || ...`
+// would return the raw array and it would render as "[object Object],...".
+function errorMessageFrom(data) {
+  const detail = data?.detail;
+
+  if (Array.isArray(detail)) {
+    const parts = detail
+      .map((e) => {
+        const field = Array.isArray(e?.loc) ? e.loc[e.loc.length - 1] : null;
+        const msg = e?.msg || (typeof e === 'string' ? e : null);
+        if (!msg) return null;
+        return field && field !== 'body' ? `${field}: ${msg}` : msg;
+      })
+      .filter(Boolean);
+    if (parts.length) return parts.join(' · ');
+  }
+
+  if (typeof detail === 'string' && detail) return detail;
+
+  // Objects / anything unexpected — never let "[object Object]" through.
+  if (detail && typeof detail === 'object') {
+    try { return JSON.stringify(detail); } catch { /* ignore */ }
+  }
+
+  return 'Something went wrong';
+}
+
 async function uploadRequest(path, formData) {
   const token = getToken();
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: formData,   // browser sets multipart Content-Type automatically
-  });
+  let response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,   // browser sets multipart Content-Type automatically
+    });
+  } catch {
+    throw networkError();
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data?.detail || 'Upload failed');
+    const msg = errorMessageFrom(data);
+    throw new Error(msg === 'Something went wrong' ? 'Upload failed' : msg);
   }
   return data;
 }
