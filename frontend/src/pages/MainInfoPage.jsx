@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLang } from '../i18n/LanguageContext';
+import SocialLinks from '../components/SocialLinks';
 
 // TODO: update with your real salon details.
 // The address is written per-language so it always shows correctly:
 const SHOP = {
-  name:  'Kids Salon',
+  name:  'Kids Barbershop',
   address: {
     en: 'Kafr Qara, opposite Elementary School A',
     he: 'כפר קרע, מול בית ספר יסודי א׳',
@@ -13,16 +14,16 @@ const SHOP = {
   },
   phone:     '050-379-6880',       // how the number is displayed
   phoneLink: '+972503796880',      // international format used for the actual call
-  email: 'kidssalon060@gmail.com',
+  email: 'info@kidsbarbershop.com',
   hours: {
-    en: 'Sun–Sat: 10:00 AM – 8:00 PM',
-    he: 'א׳–ש׳: 10:00 – 20:00',
-    ar: 'الأحد–السبت: 10:00 – 20:00',
+    en: 'Mon–Sat: 9:00 AM – 6:00 PM',
+    he: 'ב׳–ש׳: 9:00 – 18:00',
+    ar: 'الاثنين–السبت: 9:00 – 18:00',
   },
   // TODO: put your real prices here
   services: [
-    { labelKey: 'boysHaircut',     icon: '💈', price: '₪-' },
-    { labelKey: 'girlsHairDesign', icon: '🎀', price: '₪-' },
+    { labelKey: 'boysHaircut',     icon: '💈', price: '₪50' },
+    { labelKey: 'girlsHairDesign', icon: '🎀', price: '₪60' },
   ],
 };
 
@@ -116,6 +117,11 @@ export default function MainInfoPage() {
               {SHOP.email}
             </a>
           } last />
+
+          {/* Social pages */}
+          <div style={{ borderTop: '1.5px solid var(--color-gray-100)', paddingTop: 14, marginTop: 4 }}>
+            <SocialLinks label={t('followUs')} />
+          </div>
         </div>
 
         {/* Actions */}

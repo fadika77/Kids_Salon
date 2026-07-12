@@ -6,6 +6,7 @@ import AboutButton from '../components/AboutButton';
 import BottomNav from '../components/BottomNav';
 import FirstRunModal from '../components/FirstRunModal';
 import Loading from '../components/Loading';
+import SocialLinks from '../components/SocialLinks';
 import { registerPushNotifications } from '../utils/pushNotifications';
 import { useLang } from '../i18n/LanguageContext';
 import { todayISO } from '../utils/dates';
@@ -226,6 +227,9 @@ export default function CustomerHomePage() {
             📅 {t('myAppointments')}
           </button>
         </div>
+
+        {/* ── Social pages ─────────────────────────────────────────────── */}
+        <SocialLinks label={t('followUs')} style={{ marginTop: 30, marginBottom: 6 }} />
       </div>
 
       <BottomNav />

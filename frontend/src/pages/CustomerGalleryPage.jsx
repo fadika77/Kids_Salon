@@ -4,6 +4,7 @@ import { BASE_URL } from '../api/api';
 import Loading from '../components/Loading';
 import { Message } from '../components/Message';
 import AboutButton from '../components/AboutButton';
+import SocialLinks from '../components/SocialLinks';
 import { useLang } from '../i18n/LanguageContext';
 
 /**
@@ -77,6 +78,9 @@ export default function CustomerGalleryPage() {
             ))}
           </div>
         )}
+
+        {/* Follow us for more photos */}
+        <SocialLinks label={t('followUsMore')} style={{ marginTop: 28, marginBottom: 8 }} />
       </div>
 
       {/* ── Full-screen viewer ─────────────────────────────────────────── */}

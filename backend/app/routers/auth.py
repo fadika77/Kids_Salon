@@ -1,7 +1,8 @@
 import secrets
+import time
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -14,6 +15,47 @@ from ..auth import hash_password, verify_password, create_access_token, get_curr
 from .. import email_service
 
 router = APIRouter()
+
+
+# ---------------------------------------------------------------------------
+# Brute-force protection (no external packages needed)
+#
+# Tracks FAILED attempts per client IP. After MAX_ATTEMPTS failures within
+# WINDOW_SECONDS, further attempts get HTTP 429 until the window passes.
+# Applied to: /auth/login, /auth/forgot-password, /auth/reset-password.
+# ---------------------------------------------------------------------------
+_FAILED_ATTEMPTS: dict = {}          # key: "scope:ip" -> [timestamps]
+_MAX_ATTEMPTS    = 5
+_WINDOW_SECONDS  = 15 * 60           # 15 minutes
+
+
+def _client_ip(request: Request) -> str:
+    # Behind Render's proxy the real IP is in X-Forwarded-For
+    fwd = request.headers.get("x-forwarded-for")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_rate_limit(scope: str, request: Request):
+    key = f"{scope}:{_client_ip(request)}"
+    now = time.time()
+    attempts = [t for t in _FAILED_ATTEMPTS.get(key, []) if now - t < _WINDOW_SECONDS]
+    _FAILED_ATTEMPTS[key] = attempts
+    if len(attempts) >= _MAX_ATTEMPTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts. Please try again in 15 minutes.",
+        )
+
+
+def _record_failure(scope: str, request: Request):
+    key = f"{scope}:{_client_ip(request)}"
+    _FAILED_ATTEMPTS.setdefault(key, []).append(time.time())
+
+
+def _clear_failures(scope: str, request: Request):
+    _FAILED_ATTEMPTS.pop(f"{scope}:{_client_ip(request)}", None)
 
 
 # ---------------------------------------------------------------------------
@@ -52,14 +94,18 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
 # POST /auth/login
 # ---------------------------------------------------------------------------
 @router.post("/login", response_model=Token)
-def login(payload: UserLogin, db: Session = Depends(get_db)):
+def login(payload: UserLogin, request: Request, db: Session = Depends(get_db)):
+    _check_rate_limit("login", request)
+
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
+        _record_failure("login", request)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
 
+    _clear_failures("login", request)
     access_token = create_access_token({"sub": str(user.id), "role": user.role.value})
     return Token(
         access_token=access_token,
@@ -187,9 +233,14 @@ def update_fcm_token(
 @router.post("/forgot-password")
 def forgot_password(
     payload: ForgotPasswordRequest,
+    request: Request,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
+    # Every call counts as an "attempt" here — prevents email spamming
+    _check_rate_limit("forgot", request)
+    _record_failure("forgot", request)
+
     user = db.query(User).filter(
         User.email == payload.email.strip(),
         User.role == UserRole.admin,
@@ -211,7 +262,10 @@ def forgot_password(
 # POST /auth/reset-password  – verify the code and set a new password
 # ---------------------------------------------------------------------------
 @router.post("/reset-password")
-def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+def reset_password(payload: ResetPasswordRequest, request: Request, db: Session = Depends(get_db)):
+    # Rate-limited: without this, a 6-digit code could be brute-forced
+    _check_rate_limit("reset", request)
+
     user = db.query(User).filter(
         User.email == payload.email.strip(),
         User.role == UserRole.admin,
@@ -223,10 +277,13 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     )
 
     if not user or not user.reset_code or not user.reset_code_expires:
+        _record_failure("reset", request)
         raise invalid
     if user.reset_code != payload.code.strip():
+        _record_failure("reset", request)
         raise invalid
     if datetime.utcnow() > user.reset_code_expires:
+        _record_failure("reset", request)
         raise invalid
     if len(payload.new_password) < 6:
         raise HTTPException(
@@ -239,4 +296,5 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     user.reset_code_expires = None
     db.commit()
 
+    _clear_failures("reset", request)
     return {"ok": True, "message": "Password reset successfully"}

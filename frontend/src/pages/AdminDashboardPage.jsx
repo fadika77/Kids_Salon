@@ -7,6 +7,7 @@ import { registerPushNotifications } from '../utils/pushNotifications';
 import { useLang } from '../i18n/LanguageContext';
 import { todayISO } from '../utils/dates';
 import GalleryManager from '../components/GalleryManager';
+import SocialLinks from '../components/SocialLinks';
 
 /** Number that counts up from 0 when it first appears. */
 function CountUp({ value, duration = 900 }) {
@@ -207,6 +208,9 @@ export default function AdminDashboardPage() {
             )}
           </>
         )}
+
+        {/* ── Salon social pages ─────────────────────────────────────── */}
+        <SocialLinks label={t('followUs')} style={{ marginTop: 30, marginBottom: 8 }} />
       </div>
 
       {showGallery && <GalleryManager onClose={() => setShowGallery(false)} />}
