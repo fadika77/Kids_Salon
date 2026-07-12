@@ -23,8 +23,8 @@ _scheduler = BackgroundScheduler()
 # Create FastAPI app
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="Kids Barbershop API",
-    description="Backend API for the Kids Barbershop booking system",
+    title="Kids Salon API",
+    description="Backend API for the Kids Salon booking system",
     version="1.0.0",
 )
 
@@ -69,9 +69,9 @@ def on_startup():
     try:
         # Seed default app settings if table is empty
         if db.query(AppSettings).count() == 0:
-            default_admin_email = os.getenv("ADMIN_DEFAULT_EMAIL", "admin@kidsbarbershop.com")
+            default_admin_email = os.getenv("ADMIN_DEFAULT_EMAIL", "kidssalon060@gmail.com")
             settings = AppSettings(
-                shop_name=os.getenv("SHOP_NAME", "Kids Barbershop"),
+                shop_name=os.getenv("SHOP_NAME", "Kids Salon"),
                 admin_email=default_admin_email,
             )
             db.add(settings)
@@ -82,8 +82,8 @@ def on_startup():
         from .models import User
         from .auth import hash_password
         if db.query(User).filter(User.role == UserRole.admin).count() == 0:
-            admin_email    = os.getenv("ADMIN_DEFAULT_EMAIL", "admin@kidsbarbershop.com")
-            admin_password = os.getenv("ADMIN_DEFAULT_PASSWORD", "Admin123!")
+            admin_email    = os.getenv("ADMIN_DEFAULT_EMAIL", "kidssalon060@gmail.com")
+            admin_password = os.getenv("ADMIN_DEFAULT_PASSWORD", "Salon123!")
             admin = User(
                 full_name="Admin",
                 email=admin_email,
@@ -115,7 +115,7 @@ def on_shutdown():
 # HEAD is included so uptime monitors (UptimeRobot etc.) get a 200 instead of 405
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
-    return {"status": "ok", "message": "Kids Barbershop API is running"}
+    return {"status": "ok", "message": "Kids Salon API is running"}
 
 @app.api_route("/health", methods=["GET", "HEAD"])
 def health():

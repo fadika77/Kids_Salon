@@ -14,7 +14,7 @@ export const translations = {
   /* ════════════════════════════ ENGLISH ════════════════════════════ */
   en: {
     // Common
-    appName: 'Kids Barbershop',
+    appName: 'Kids Salon',
     loading: 'Loading…',
     cancel: 'Cancel',
     back: 'Back',
@@ -69,7 +69,7 @@ export const translations = {
     loginHere: 'login here',
 
     // First run modal
-    welcomeTitle: 'Welcome to Kids Barbershop!',
+    welcomeTitle: 'Welcome to Kids Salon!',
     welcomeSub: 'Tell us a bit about yourself so we can get you booked in. 🎉',
     fullName: 'Full Name',
     emailAddress: 'Email Address',

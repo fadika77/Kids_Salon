@@ -6,7 +6,7 @@ import SocialLinks from '../components/SocialLinks';
 // TODO: update with your real salon details.
 // The address is written per-language so it always shows correctly:
 const SHOP = {
-  name:  'Kids Barbershop',
+  name:  'Kids Salon',
   address: {
     en: 'Kafr Qara, opposite Elementary School A',
     he: 'כפר קרע, מול בית ספר יסודי א׳',
@@ -14,7 +14,7 @@ const SHOP = {
   },
   phone:     '050-379-6880',       // how the number is displayed
   phoneLink: '+972503796880',      // international format used for the actual call
-  email: 'info@kidsbarbershop.com',
+  email: 'kidssalon060@gmail.com',
   hours: {
     en: 'Mon–Sat: 9:00 AM – 6:00 PM',
     he: 'ב׳–ש׳: 9:00 – 18:00',
@@ -22,8 +22,8 @@ const SHOP = {
   },
   // TODO: put your real prices here
   services: [
-    { labelKey: 'boysHaircut',     icon: '💈', price: '₪50' },
-    { labelKey: 'girlsHairDesign', icon: '🎀', price: '₪60' },
+    { labelKey: 'boysHaircut',     icon: '💈', price: '₪30' },
+    { labelKey: 'girlsHairDesign', icon: '🎀', price: '₪50' },
   ],
 };
 

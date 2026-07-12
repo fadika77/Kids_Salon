@@ -202,7 +202,7 @@ def delete_slot(
 
             customer    = booking.customer
             settings    = db.query(AppSettings).first()
-            shop_name   = settings.shop_name   if settings else "Kids Barbershop"
+            shop_name   = settings.shop_name   if settings else "Kids Salon"
             admin_email = settings.admin_email if settings else ""
             admin_fcm   = _get_admin_fcm_token(db, admin_email)
             background_tasks.add_task(
@@ -290,7 +290,7 @@ def admin_cancel_booking(
     customer      = booking.customer
     settings      = db.query(AppSettings).first()
     admin_email   = settings.admin_email if settings else ""
-    shop_name     = settings.shop_name   if settings else "Kids Barbershop"
+    shop_name     = settings.shop_name   if settings else "Kids Salon"
     admin_fcm     = _get_admin_fcm_token(db, admin_email)
     appt_date_str = str(booking.slot.date)  if booking.slot else ""
     appt_time_str = str(booking.slot.time)[:5] if booking.slot else ""
