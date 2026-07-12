@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { adminApi } from '../api/admin';
 import { Message } from '../components/Message';
 import { useLang } from '../i18n/LanguageContext';
@@ -23,10 +23,12 @@ function buildTimes(stepMinutes) {
 
 export default function AdminCreateSlotPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, locale } = useLang();
   const today = todayISO();
 
-  const [mode, setMode] = useState('single');   // 'single' | 'weekly'
+  // "Weekly Slots" in the More menu opens this page directly in weekly mode
+  const [mode, setMode] = useState(location.state?.mode === 'weekly' ? 'weekly' : 'single');
 
   return (
     <div>

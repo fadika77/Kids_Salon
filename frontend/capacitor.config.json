@@ -1,9 +1,9 @@
 {
-  "appId": "com.fadi.kidsbarbershop",
+  "appId": "com.kidsbarbershop.app",
   "appName": "Kids Salon",
   "webDir": "dist",
   "server": {
-    "androidScheme": "http"
+    "androidScheme": "https"
   },
   "plugins": {
     "SplashScreen": {

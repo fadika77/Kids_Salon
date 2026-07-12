@@ -10,6 +10,7 @@
 // If one of them is set to '' (empty), its icon is hidden automatically.
 // ─────────────────────────────────────────────────────────────────────────
 export const SOCIAL = {
-  instagram: 'https://www.instagram.com/fadi.kanaane.17',
+  instagram: 'https://www.instagram.com/kids_salon25?igsh=MTMwY3E0NnRmbmoxaA==',
   facebook:  'https://www.facebook.com/share/1QT9CEmxmW/?mibextid=wwXIfr',
+  tiktok:'https://www.tiktok.com/@fadikanane?_r=1&_t=ZS-97yrJWHeXZ7',
 };

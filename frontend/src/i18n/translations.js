@@ -162,6 +162,10 @@ export const translations = {
     navAdminBookings: 'Bookings',
     navSettings: 'Settings',
     logout: 'Logout',
+    adminNavHome: 'Home',
+    adminNavMore: 'More',
+    viewAsCustomer: 'View as Customer',
+    galleryShort: 'Gallery',
 
     // Admin dashboard
     dashboardTitle: 'Dashboard 👑',
@@ -457,6 +461,10 @@ export const translations = {
     navAdminBookings: 'הזמנות',
     navSettings: 'הגדרות',
     logout: 'התנתקות',
+    adminNavHome: 'בית',
+    adminNavMore: 'עוד',
+    viewAsCustomer: 'תצוגת לקוח',
+    galleryShort: 'גלריה',
 
     dashboardTitle: 'לוח בקרה 👑',
     loadingDashboard: 'טוען לוח בקרה…',
@@ -747,6 +755,10 @@ export const translations = {
     navAdminBookings: 'الحجوزات',
     navSettings: 'الإعدادات',
     logout: 'تسجيل الخروج',
+    adminNavHome: 'الرئيسية',
+    adminNavMore: 'المزيد',
+    viewAsCustomer: 'عرض كزبون',
+    galleryShort: 'المعرض',
 
     dashboardTitle: 'لوحة التحكم 👑',
     loadingDashboard: 'جارٍ تحميل لوحة التحكم…',
