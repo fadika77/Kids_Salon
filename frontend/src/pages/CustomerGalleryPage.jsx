@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { bookingsApi } from '../api/bookings';
 import { BASE_URL } from '../api/api';
+
+// Cloud images come as full https URLs; local ones as /uploads/... paths
+const imgSrc = (url) => (url?.startsWith('http') ? url : `${BASE_URL}${url}`);
 import Loading from '../components/Loading';
 import { Message } from '../components/Message';
 import AboutButton from '../components/AboutButton';
@@ -69,7 +72,7 @@ export default function CustomerGalleryPage() {
                 }}
               >
                 <img
-                  src={`${BASE_URL}${img.url}`}
+                  src={imgSrc(img.url)}
                   alt="Haircut"
                   loading="lazy"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -95,7 +98,7 @@ export default function CustomerGalleryPage() {
           }}
         >
           <img
-            src={`${BASE_URL}${viewing.url}`}
+            src={imgSrc(viewing.url)}
             alt="Haircut"
             className="pop-in"
             style={{

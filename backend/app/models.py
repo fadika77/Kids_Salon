@@ -139,7 +139,9 @@ class GalleryImage(Base):
     __tablename__ = "gallery_images"
 
     id          = Column(Integer, primary_key=True, index=True)
-    filename    = Column(Unicode(255), nullable=False)
+    filename    = Column(Unicode(255), nullable=False, default="")  # local file (empty for cloud images)
+    url         = Column(Unicode(500), nullable=True)               # full cloud URL (Cloudinary)
+    public_id   = Column(Unicode(255), nullable=True)               # cloud id, needed for deletion
     uploaded_at = Column(DateTime, server_default=func.now())
 
 

@@ -133,7 +133,7 @@ def create_booking(
     appt_time_str = str(slot.time)[:5]
 
     settings    = db.query(AppSettings).first()
-    shop_name   = settings.shop_name   if settings else "Kids Salon"
+    shop_name   = settings.shop_name   if settings else "Kids Barbershop"
     admin_email = settings.admin_email if settings else ""
     admin_fcm   = _get_admin_fcm_token(db, admin_email)
 
@@ -204,7 +204,7 @@ def cancel_booking(
     db.refresh(booking)
 
     settings    = db.query(AppSettings).first()
-    shop_name   = settings.shop_name   if settings else "Kids Salon"
+    shop_name   = settings.shop_name   if settings else "Kids Barbershop"
     admin_email = settings.admin_email if settings else ""
     admin_fcm   = _get_admin_fcm_token(db, admin_email)
     appt_date_str = str(booking.slot.date)
@@ -317,6 +317,11 @@ def join_waitlist(
 def gallery(db: Session = Depends(get_db)):
     images = db.query(GalleryImage).order_by(GalleryImage.uploaded_at.desc()).all()
     return [
-        GalleryImageOut(id=i.id, url=f"/uploads/gallery/{i.filename}", uploaded_at=i.uploaded_at)
+        GalleryImageOut(
+            id=i.id,
+            # Cloud images have a full https URL; legacy/local ones a relative path
+            url=i.url or f"/uploads/gallery/{i.filename}",
+            uploaded_at=i.uploaded_at,
+        )
         for i in images
     ]

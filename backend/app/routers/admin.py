@@ -21,6 +21,7 @@ from ..schemas import (
 from ..auth import get_current_admin
 from ..models import User
 from .. import notifications
+from .. import storage
 from ..models import UserRole
 from .customer import collect_waitlist_for_date
 
@@ -202,7 +203,7 @@ def delete_slot(
 
             customer    = booking.customer
             settings    = db.query(AppSettings).first()
-            shop_name   = settings.shop_name   if settings else "Kids Salon"
+            shop_name   = settings.shop_name   if settings else "Kids Barbershop"
             admin_email = settings.admin_email if settings else ""
             admin_fcm   = _get_admin_fcm_token(db, admin_email)
             background_tasks.add_task(
@@ -290,7 +291,7 @@ def admin_cancel_booking(
     customer      = booking.customer
     settings      = db.query(AppSettings).first()
     admin_email   = settings.admin_email if settings else ""
-    shop_name     = settings.shop_name   if settings else "Kids Salon"
+    shop_name     = settings.shop_name   if settings else "Kids Barbershop"
     admin_fcm     = _get_admin_fcm_token(db, admin_email)
     appt_date_str = str(booking.slot.date)  if booking.slot else ""
     appt_time_str = str(booking.slot.time)[:5] if booking.slot else ""
@@ -569,23 +570,26 @@ async def upload_gallery_image(
     if not (file.content_type or "").startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
 
-    ext = os.path.splitext(file.filename or "")[1].lower() or ".jpg"
-    if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
-        ext = ".jpg"
-    filename = f"{uuid.uuid4().hex}{ext}"
-
-    os.makedirs(GALLERY_DIR, exist_ok=True)
     contents = await file.read()
     if len(contents) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image too large (max 10 MB)")
-    with open(os.path.join(GALLERY_DIR, filename), "wb") as f:
-        f.write(contents)
 
-    image = GalleryImage(filename=filename)
+    # Cloud (Cloudinary) when configured — survives deploys/restarts.
+    # Local disk fallback otherwise (development).
+    try:
+        stored = storage.upload_image(contents, file.filename or "")
+    except Exception:
+        raise HTTPException(status_code=502, detail="Image upload to storage failed. Try again.")
+
+    image = GalleryImage(
+        filename=stored["filename"],
+        url=stored["url"] if stored["public_id"] else None,
+        public_id=stored["public_id"],
+    )
     db.add(image)
     db.commit()
     db.refresh(image)
-    return GalleryImageOut(id=image.id, url=f"/uploads/gallery/{filename}", uploaded_at=image.uploaded_at)
+    return GalleryImageOut(id=image.id, url=stored["url"], uploaded_at=image.uploaded_at)
 
 
 @router.delete("/gallery/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -597,9 +601,6 @@ def delete_gallery_image(
     image = db.query(GalleryImage).filter(GalleryImage.id == image_id).first()
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
-    try:
-        os.remove(os.path.join(GALLERY_DIR, image.filename))
-    except OSError:
-        pass
+    storage.delete_image(image.public_id, image.filename)
     db.delete(image)
     db.commit()

@@ -5,6 +5,9 @@ import { BASE_URL } from '../api/api';
 import { Message } from './Message';
 import { useLang } from '../i18n/LanguageContext';
 
+// Cloud images come as full https URLs; local ones as /uploads/... paths
+const imgSrc = (url) => (url?.startsWith('http') ? url : `${BASE_URL}${url}`);
+
 /**
  * Admin gallery manager — a popup opened from the dashboard.
  * Lets the admin upload a picture from the device OR take one with the
@@ -145,7 +148,7 @@ export default function GalleryManager({ onClose }) {
               {images.map((img) => (
                 <div key={img.id} style={{ position: 'relative' }}>
                   <img
-                    src={`${BASE_URL}${img.url}`}
+                    src={imgSrc(img.url)}
                     alt="Haircut"
                     loading="lazy"
                     style={{
